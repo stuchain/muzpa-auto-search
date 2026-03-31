@@ -6,3 +6,32 @@ dist-electron/
 npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa
+id_rsa.pub
+*.secret
+secrets.*
+credentials.*
+
+# OS/editor local files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local runtime/cache
+.cache/
+.tmp/
+tmp/
+coverage/
