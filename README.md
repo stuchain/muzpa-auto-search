@@ -59,3 +59,7 @@ This repo is set up to avoid pushing local/private data:
 - **Port 5173 in use:** close old app/dev terminals, then run `run.bat` again
 - **Need fresh session:** use `Restart Run`
 - **No auto-download:** expected behavior, downloads are manual by design
+
+## License
+
+MIT
