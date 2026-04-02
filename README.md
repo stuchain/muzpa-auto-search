@@ -10,6 +10,10 @@ It is designed to speed up repetitive searching while keeping all actual downloa
 If you already have track lists in CSV format, searching every song in MuzPa manually is slow.  
 This app keeps download control in your hands, but removes repetitive search steps.
 
+## Demo
+
+![Demo](content/demo.gif)
+
 ## What It Does
 
 - Load a CSV (`column 1 = track`, `column 2 = artist`)
