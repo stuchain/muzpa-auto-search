@@ -24,11 +24,12 @@ No auto-click downloads. No hidden automation behavior.
 ## Quick Start
 
 1. Double-click `run.bat`
-2. Select your CSV (for example one exported from Spotify)
-3. Pick browser
-4. Click `Run`
-5. Download manually in browser
-6. Click `Next (Done)` and continue
+2. On macOS, run `chmod +x run.sh` and then `./run.sh`
+3. Select your CSV (for example one exported from Spotify)
+4. Pick browser
+5. Click `Run`
+6. Download manually in browser
+7. Click `Next (Done)` and continue
 
 ## CSV Format
 
