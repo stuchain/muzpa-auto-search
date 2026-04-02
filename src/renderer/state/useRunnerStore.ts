@@ -24,7 +24,8 @@ interface RunnerStore {
 const emptyProgress: ProgressSummary = { total: 0, done: 0, skipped: 0, failed: 0, pending: 0, percent: 0 };
 
 export const useRunnerStore = create<RunnerStore>((set, get) => ({
-  browser: "chrome",
+  // Default to embedded runner for the fastest, tab-free workflow.
+  browser: "embedded",
   csvPath: "",
   warnings: [],
   session: null,
@@ -112,7 +113,7 @@ export const useRunnerStore = create<RunnerStore>((set, get) => ({
   },
   hydrate: async () => {
     const result = (await window.muzpaAPI.getSession()) as { session: RunnerSession | null; progress: ProgressSummary };
-    set({ session: result.session, progress: result.progress });
+    set({ session: result.session, progress: result.progress, browser: result.session?.browser ?? "embedded" });
   },
   exportHistory: async () => {
     await window.muzpaAPI.exportHistory();
