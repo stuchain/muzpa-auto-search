@@ -7,6 +7,7 @@ declare global {
       pickCsv: () => Promise<unknown>;
       createSession: (csvPath: string, browser: BrowserType) => Promise<unknown>;
       getSession: () => Promise<unknown>;
+      setSessionBrowser: (browser: BrowserType) => Promise<unknown>;
       run: () => Promise<unknown>;
       next: (markAs: "done" | "skipped" | "failed") => Promise<unknown>;
       pause: () => Promise<unknown>;
@@ -14,6 +15,13 @@ declare global {
       stop: () => Promise<unknown>;
       exportHistory: () => Promise<unknown>;
     };
+  }
+
+  namespace JSX {
+    interface IntrinsicElements {
+      // Electron-specific element; the app uses this for embedded Muzpa navigation.
+      webview: any;
+    }
   }
 }
 

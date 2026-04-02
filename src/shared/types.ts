@@ -1,4 +1,4 @@
-export type BrowserType = "chrome" | "brave" | "firefox" | "edge";
+export type BrowserType = "chrome" | "brave" | "firefox" | "edge" | "embedded";
 
 export type TrackStatus = "pending" | "in_progress" | "done" | "skipped" | "failed";
 

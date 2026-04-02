@@ -1,8 +1,8 @@
 import { exec } from "node:child_process";
 import type { BrowserType } from "../../shared/types";
+import { buildMuzpaSearchUrl } from "../../shared/muzpaUrl";
 
 const MUZPA_URL = "https://srv.muzpa.com/";
-const MUZPA_SEARCH_BASE = "https://srv.muzpa.com/#/search?text=";
 
 function browserExecutable(browser: BrowserType): string | null {
   if (process.platform !== "win32") return null;
@@ -41,8 +41,7 @@ export class BrowserController {
     if (!this.currentBrowser) {
       throw new Error("Browser is not running yet.");
     }
-    const encoded = encodeURIComponent(query.trim());
-    const url = `${MUZPA_SEARCH_BASE}${encoded}`;
+    const url = buildMuzpaSearchUrl(query);
     await openInBrowser(this.currentBrowser, url);
   }
 

@@ -4,7 +4,8 @@ import { BrowserController } from "../src/main/services/browserController";
 import { parseCsv } from "../src/main/services/csvService";
 import { appendHistory, clearSession, exportHistory, loadSession, saveSession } from "../src/main/services/sessionService";
 import { computeProgress } from "../src/shared/progress";
-import type { BrowserType, RunnerSession, TrackStatus } from "../src/shared/types";
+import { advanceAfterMark, searchCurrentForEmbedded } from "../src/main/runner/runnerLogic";
+import type { BrowserType, RunnerSession } from "../src/shared/types";
 
 const browserController = new BrowserController();
 let mainWindow: BrowserWindow | null = null;
@@ -14,27 +15,20 @@ function isDev(): boolean {
   return Boolean(process.env.VITE_DEV_SERVER_URL);
 }
 
-function markCurrentRow(status: TrackStatus, error?: string): void {
-  if (!session) return;
-  const row = session.rows[session.currentIndex];
-  if (!row) return;
-  row.status = status;
-  row.error = error;
-  session.updatedAt = new Date().toISOString();
-}
-
 async function searchCurrent(): Promise<void> {
   if (!session) throw new Error("Session not loaded.");
   const row = session.rows[session.currentIndex];
-  if (!row) {
-    session.state = "completed";
-    return;
+  const nowIso = new Date().toISOString();
+
+  // Update session + row status deterministically for both embedded and external modes.
+  const hasRow = searchCurrentForEmbedded(session, nowIso);
+  if (!hasRow) return;
+
+  // In embedded mode we only update session state; the renderer's <webview> navigates.
+  if (session.browser !== "embedded") {
+    await browserController.launch(session.browser);
+    await browserController.search(row!.query);
   }
-  row.status = "in_progress";
-  await browserController.launch(session.browser);
-  await browserController.search(row.query);
-  session.state = "running";
-  session.updatedAt = new Date().toISOString();
 }
 
 function createWindow(): void {
@@ -47,7 +41,8 @@ function createWindow(): void {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      webviewTag: true
     }
   });
 
@@ -108,17 +103,41 @@ ipcMain.handle("runner:run", async () => {
   return { session, progress: computeProgress(session) };
 });
 
+ipcMain.handle("session:setBrowser", async (_event, browser: BrowserType) => {
+  if (!session) return { session: null as RunnerSession | null, progress: computeProgress(null) };
+
+  session.browser = browser;
+  session.updatedAt = new Date().toISOString();
+  await saveSession(session);
+
+  // If the run is active (or ready to start), refresh the currently selected item.
+  // In embedded mode this will navigate the embedded webview without launching an external browser.
+  if (session.state === "ready" || session.state === "running" || session.state === "paused") {
+    await searchCurrent();
+    await saveSession(session);
+  }
+
+  return { session, progress: computeProgress(session) };
+});
+
 ipcMain.handle("runner:next", async (_, markAs: "done" | "skipped" | "failed") => {
   if (!session) throw new Error("No active session.");
-  markCurrentRow(markAs);
-  session.currentIndex += 1;
-  if (session.currentIndex >= session.rows.length) {
-    session.state = "completed";
+
+  const nowIso = new Date().toISOString();
+  const hasMore = advanceAfterMark(session, markAs, nowIso);
+
+  if (!hasMore) {
     await appendHistory(session);
     await saveSession(session);
     return { session, progress: computeProgress(session) };
   }
-  await searchCurrent();
+
+  const row = session.rows[session.currentIndex];
+  if (session.browser !== "embedded") {
+    await browserController.launch(session.browser);
+    await browserController.search(row!.query);
+  }
+
   await saveSession(session);
   return { session, progress: computeProgress(session) };
 });

@@ -3,7 +3,7 @@ import { useRunnerStore } from "../state/useRunnerStore";
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
-  const { run, next, pause, resume, exportHistory } = useRunnerStore();
+  const { run, next, pause, resume, exportHistory, loading } = useRunnerStore();
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -35,7 +35,9 @@ export function CommandPalette() {
             <button
               key={action.label}
               className="w-full rounded-lg bg-slate-900/80 px-3 py-2 text-left hover:bg-slate-800"
+              disabled={loading}
               onClick={() => {
+                if (loading) return;
                 void action.fn();
                 setOpen(false);
               }}

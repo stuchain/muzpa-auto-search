@@ -30,7 +30,30 @@ export const useRunnerStore = create<RunnerStore>((set, get) => ({
   session: null,
   progress: emptyProgress,
   loading: false,
-  setBrowser: (browser) => set({ browser }),
+  setBrowser: (browser) => {
+    set({ browser });
+
+    // If there's an active session, keep the Electron main process in sync so Next/Skip/Fail uses it.
+    const activeSession = get().session;
+    if (!activeSession) return;
+
+    // Prevent user actions while we update the active session browser in main.
+    set({ loading: true });
+
+    void (async () => {
+      try {
+        const result = (await window.muzpaAPI.setSessionBrowser(browser)) as {
+          session: RunnerSession | null;
+          progress: ProgressSummary;
+        };
+        set({ session: result.session, progress: result.progress });
+      } catch {
+        // IPC failure shouldn't crash the runner UI; keep the previous session/progress.
+      } finally {
+        set({ loading: false });
+      }
+    })();
+  },
   setCsvPath: (csvPath) => set({ csvPath }),
   pickCsv: async () => {
     const preview = (await window.muzpaAPI.pickCsv()) as CsvPreview | null;

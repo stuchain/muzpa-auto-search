@@ -6,10 +6,11 @@ import { RunControls } from "./components/RunControls";
 import { SessionTimeline } from "./components/SessionTimeline";
 import { TrackPreviewTable } from "./components/TrackPreviewTable";
 import { CommandPalette } from "./components/CommandPalette";
+import { EmbeddedRunnerPanel } from "./components/EmbeddedRunnerPanel";
 import { useRunnerStore } from "./state/useRunnerStore";
 
 export function App() {
-  const { browser, setBrowser, hydrate, next, pause, resume } = useRunnerStore();
+  const { browser, setBrowser, hydrate, next, pause, resume, loading } = useRunnerStore();
 
   useEffect(() => {
     void hydrate();
@@ -17,6 +18,7 @@ export function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (loading) return;
       const key = event.key.toLowerCase();
       if (key === "enter") void next("done");
       if (key === "s") void next("skipped");
@@ -25,7 +27,7 @@ export function App() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [next, pause, resume]);
+  }, [next, pause, resume, loading]);
 
   return (
     <main className="min-h-screen p-6">
@@ -45,21 +47,37 @@ export function App() {
             <option value="brave">Brave</option>
             <option value="firefox">Firefox</option>
             <option value="edge">Edge</option>
+            <option value="embedded">Embedded Runner</option>
           </select>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <div className="space-y-4 xl:col-span-2">
-          <ImportPanel />
-          <RunControls />
-          <ProgressPanel />
-          <TrackPreviewTable />
+      {browser === "embedded" ? (
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <div className="space-y-4 xl:col-span-2">
+            <EmbeddedRunnerPanel />
+          </div>
+          <div className="space-y-4 xl:col-span-1">
+            <ImportPanel />
+            <RunControls />
+            <ProgressPanel />
+            <TrackPreviewTable />
+            <SessionTimeline />
+          </div>
         </div>
-        <div className="space-y-4">
-          <SessionTimeline />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <div className="space-y-4 xl:col-span-2">
+            <ImportPanel />
+            <RunControls />
+            <ProgressPanel />
+            <TrackPreviewTable />
+          </div>
+          <div className="space-y-4">
+            <SessionTimeline />
+          </div>
         </div>
-      </div>
+      )}
       <CommandPalette />
     </main>
   );
